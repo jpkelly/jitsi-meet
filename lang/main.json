@@ -864,7 +864,7 @@
             "join": "Tap to join",
             "roomname": "Enter room name"
         },
-        "appDescription": "{{app}} is a fully encrypted video conferencing solution.",
+        "appDescription": "Secure, reliable fully featured",
         "audioVideoSwitch": {
             "audio": "Voice",
             "video": "Video"
@@ -889,7 +889,7 @@
         "roomnameHint": "Enter the name or URL of the room you want to join. You may make a name up, just let the people you are meeting know it so that they enter the same name.",
         "sendFeedback": "Send feedback",
         "terms": "Terms",
-        "title": "Secure, fully featured video conferencing"
+        "title": "{{app}} video conferencing"
     },
     "lonelyMeetingExperience": {
         "button": "Invite others",
