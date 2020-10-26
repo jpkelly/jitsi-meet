@@ -24,7 +24,6 @@ import {
     reloadWithStoredParams
 } from './react/features/app/actions';
 import {
-    AVATAR_ID_COMMAND,
     AVATAR_URL_COMMAND,
     EMAIL_COMMAND,
     authStatusChanged,
@@ -66,6 +65,8 @@ import {
     JitsiTrackEvents
 } from './react/features/base/lib-jitsi-meet';
 import {
+    getStartWithAudioMuted,
+    getStartWithVideoMuted,
     isVideoMutedByUser,
     MEDIA_TYPE,
     setAudioAvailable,
@@ -169,7 +170,6 @@ window.JitsiMeetScreenObtainer = {
  * Known custom conference commands.
  */
 const commands = {
-    AVATAR_ID: AVATAR_ID_COMMAND,
     AVATAR_URL: AVATAR_URL_COMMAND,
     CUSTOM_ROLE: 'custom-role',
     EMAIL: EMAIL_COMMAND,
@@ -733,10 +733,10 @@ export default {
         const initialOptions = {
             startAudioOnly: config.startAudioOnly,
             startScreenSharing: config.startScreenSharing,
-            startWithAudioMuted: config.startWithAudioMuted
+            startWithAudioMuted: getStartWithAudioMuted(APP.store.getState())
                 || config.startSilent
                 || isUserInteractionRequiredForUnmute(APP.store.getState()),
-            startWithVideoMuted: config.startWithVideoMuted
+            startWithVideoMuted: getStartWithVideoMuted(APP.store.getState())
                 || isUserInteractionRequiredForUnmute(APP.store.getState())
         };
 
@@ -2136,16 +2136,6 @@ export default {
                     }));
             });
 
-        room.addCommandListener(this.commands.defaults.AVATAR_ID,
-            (data, from) => {
-                APP.store.dispatch(
-                    participantUpdated({
-                        conference: room,
-                        id: from,
-                        avatarID: data.value
-                    }));
-            });
-
         APP.UI.addListener(UIEvents.NICKNAME_CHANGED,
             this.changeLocalDisplayName.bind(this));
 
@@ -2613,6 +2603,20 @@ export default {
         // following bug.
         // https://bugs.chromium.org/p/chromium/issues/detail?id=997689
         const hasDefaultMicChanged = newDevices.audioinput === 'default';
+
+        // This is the case when the local video is muted and a preferred device is connected.
+        if (requestedInput.video && this.isLocalVideoMuted()) {
+            // We want to avoid creating a new video track in order to prevent turning on the camera.
+            requestedInput.video = false;
+            APP.store.dispatch(updateSettings({ // Update the current selected camera for the device selection dialog.
+                cameraDeviceId: newDevices.videoinput
+            }));
+            delete newDevices.videoinput;
+
+            // Removing the current video track in order to force the unmute to select the preferred device.
+            this.useVideoStream(null);
+
+        }
 
         promises.push(
             mediaDeviceHelper.createLocalTracksAfterDeviceListChanged(
