@@ -12,7 +12,7 @@ import {
 function getPasswordInputHtml() {
     const placeholder = config.hosts.authdomain
         ? 'user identity'
-        : 'user@domain.net';
+        : 'user name';
 
     return `
         <input name="username" type="text"
